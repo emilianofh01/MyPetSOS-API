@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api")
 public class LostPetsController {
@@ -39,6 +40,19 @@ public class LostPetsController {
     public ResponseEntity<Object> allLostPets(@RequestHeader("Authorization") String token) {
         if(!userTokenRepository.existsById(token)) return ResponseEntityToken.TokenError("Token invalido", HttpStatus.UNAUTHORIZED);
         return new ResponseEntity<>(repository.findAll(), HttpStatus.OK);
+    }
+
+    @GetMapping("/lostPets/{id}")
+    public ResponseEntity<Object> getLostPet(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("id") int id
+    ) {
+        if(repository.existsById(id)) {
+            LostPets lostPets = repository.findById(id).get();
+
+            return new ResponseEntity<>(lostPets, HttpStatus.OK);
+        }
+        return ResponseEntityToken.TokenError("No se encuentra registrada la mascota perdida que se ingreso", HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/GetPosiblePet/{id}")
@@ -75,7 +89,7 @@ public class LostPetsController {
         return ResponseEntityToken.TokenError("Id de mascota perdida o id de mascota en adopcion en error", HttpStatus.NOT_ACCEPTABLE);
     }
 
-    @PutMapping("/UpdateLostPet/{id}")
+    @PutMapping("/lostPets/{id}")
     public ResponseEntity<Object> updateLostPet(
             @RequestHeader("Authorization") String token,
             @PathVariable("id") int id,
@@ -85,9 +99,9 @@ public class LostPetsController {
             @RequestParam("id_petBreed")    Optional<Integer> idPetBreed,
             @RequestParam("size")           Optional<String> size,
             @RequestParam("description")    Optional<String> description,
-            @RequestParam("image")          Optional<MultipartFile> image,
-            @RequestParam("location_latitude")   Optional<String> location_latitude,
-            @RequestParam("location_altitude")   Optional<String> location_altitude
+            @RequestParam("image")          Optional<MultipartFile> image
+//            @RequestParam("location_latitude")   Optional<String> location_latitude,
+//            @RequestParam("location_altitude")   Optional<String> location_altitude
 
     ) throws IOException {
         if(!userTokenRepository.existsById(token)) return ResponseEntityToken.TokenError("Token invalido", HttpStatus.UNAUTHORIZED);
@@ -110,8 +124,8 @@ public class LostPetsController {
         age.ifPresent(lostPets::setAge);
         size.ifPresent(lostPets::setSize);
         description.ifPresent(lostPets::setDescription);
-        location_altitude.ifPresent(lostPets.getLocations()::setAltitude);
-        location_latitude.ifPresent(lostPets.getLocations()::setLatitude);
+//        location_altitude.ifPresent(lostPets.getLocations()::setAltitude);
+//        location_latitude.ifPresent(lostPets.getLocations()::setLatitude);
 
         return new ResponseEntity<>(repository.save(lostPets), HttpStatus.OK) ;
     }
@@ -137,9 +151,9 @@ public class LostPetsController {
             @RequestParam("id_petBreed")    int idPetBreed,
             @RequestParam("size")           String size,
             @RequestParam("description")    String description,
-            @RequestParam("image")          Optional<MultipartFile> image,
-            @RequestParam("location_latitude")   String location_latitude,
-            @RequestParam("location_altitude")   String location_altitude
+            @RequestParam("image")          Optional<MultipartFile> image
+//            @RequestParam("location_latitude")   String location_latitude,
+//            @RequestParam("location_altitude")   String location_altitude
     ) throws IOException {
         if(!userTokenRepository.existsById(token)) return ResponseEntityToken.TokenError("Token invalido", HttpStatus.UNAUTHORIZED);
         UsersTokens usersTokens = userTokenRepository.findById(token).get();
@@ -158,7 +172,7 @@ public class LostPetsController {
         }
 
         LostPets newLostPet = new LostPets(name, sex, age, petBreed, size, description);
-        newLostPet.setLocations(lastLocationRepository.save(new LastLocations(location_latitude, location_altitude)));
+//        newLostPet.setLocations(lastLocationRepository.save(new LastLocations(location_latitude, location_altitude)));
         newLostPet.setUser(user);
         if(image.isPresent()) {
             newLostPet.setImagePath(MyPetSOSUtil.saveImage(image.get()));

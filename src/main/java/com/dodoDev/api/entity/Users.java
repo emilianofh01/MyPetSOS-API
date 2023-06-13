@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -28,6 +29,9 @@ public class Users {
 
     private String imagePath;
 
+    @ManyToMany
+    private List<PetForAdoption> favorites;
+
     public Users(String name, String surname, String email, String phone, String curp,int role_id) {
         this.name = name;
         this.surname = surname;
@@ -48,5 +52,10 @@ public class Users {
     @JsonIgnore
     public String getPassword() {
         return password;
+    }
+
+    @JsonIgnore
+    public UUID getId() {
+        return id;
     }
 }

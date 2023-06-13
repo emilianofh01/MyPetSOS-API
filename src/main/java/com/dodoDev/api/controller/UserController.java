@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/api")
 public class UserController {
     @Autowired
@@ -59,12 +60,25 @@ public class UserController {
 
         userTokenRepository.save(newToken);
         respuesta.put("name", user.getName());
+        respuesta.put("role_id", user.getRole_id());
         respuesta.put("surname", user.getSurname());
         respuesta.put("email", user.getEmail());
         respuesta.put("phone", user.getPhone());
+        respuesta.put("curp", user.getCurp());
+        respuesta.put("image", user.getImagePath());
         respuesta.put("token", newToken.getToken());
 
         return new ResponseEntity<>(respuesta, HttpStatus.OK);
+    }
+
+    @GetMapping("/validSession")
+    ResponseEntity<Object> validSession(
+            @RequestHeader("Authorization") String token
+    ) {
+        if(!userTokenRepository.existsById(token)) return ResponseEntityToken.TokenError("Token invalido", HttpStatus.UNAUTHORIZED);
+        Users user = userTokenRepository.findById(token).get().getUser();
+
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @PostMapping("/signup")
@@ -78,7 +92,7 @@ public class UserController {
             @RequestParam("image") Optional<MultipartFile> image
             ) throws IOException {
         if(userRepository.existsByEmail(email) || userRepository.existsByCurp(curp))
-            return  ResponseEntityToken.TokenError("Este correo electronico o CURP ya fue registrado.", HttpStatus.ALREADY_REPORTED);
+            return  ResponseEntityToken.TokenError("Este correo electronico o CURP ya fue registrado.", HttpStatus.BAD_REQUEST);
 
         Map<String, Object> respuesta = new HashMap<>();
 
@@ -100,7 +114,9 @@ public class UserController {
         respuesta.put("name", newUser.getName());
         respuesta.put("surname", newUser.getSurname());
         respuesta.put("email", newUser.getEmail());
+        respuesta.put("role_id", newUser.getRole_id());
         respuesta.put("phone", newUser.getPhone());
+        respuesta.put("curp", newUser.getCurp());
         respuesta.put("image", newUser.getImagePath());
         respuesta.put("token", usersTokens.getToken());
 
